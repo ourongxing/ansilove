@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Custom styles for AnsiLove */
+:root {
+  --terminal-green: #00ff00;
+  --terminal-amber: #ffbf00;
+  --terminal-bg: #000000;
+}
+
+/* Ensure the app takes full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Terminal-like font rendering for ANSI content */
+.ansi-content {
+  font-family: 'Courier New', 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+  font-feature-settings: "liga" 0;
+  text-rendering: optimizeSpeed;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Pixel-perfect rendering for canvas */
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Loading animation improvements */
+@keyframes pulse-green {
+  0%, 100% {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    border-color: #34d399;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+  }
+}
+
+.loading-border {
+  animation: pulse-green 2s infinite;
+}
+
+/* File drop zone enhancements */
+.drop-zone {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drop-zone.drag-over {
+  transform: scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Terminal-style text effects */
+.terminal-text {
+  text-shadow: 0 0 5px currentColor;
+  font-family: 'Courier New', monospace;
+}
+
+/* Glow effect for important elements */
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Improve contrast for dark theme */
+.dark-contrast {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .responsive-text {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+  }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+[tabindex]:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
