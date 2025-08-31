@@ -1,148 +1,147 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import AnsiLove, { type DisplayData, type Sauce, type AnimationController } from 'ts-ansilove';
+import type { AnimationController, DisplayData, Sauce } from "ansilove.ts"
+import AnsiLove from "ansilove.ts"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface FileInfo {
-  name: string;
-  size: number;
-  type: string;
+  name: string
+  size: number
+  type: string
 }
 
 function App() {
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<{
-    canvas: HTMLCanvasElement;
-    sauce?: Sauce;
-    fileInfo: FileInfo;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [currentFile, setCurrentFile] = useState<File | null>(null);
-  const [animationController, setAnimationController] = useState<AnimationController | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(57600); // Default to faster speed
-  const canvasRef = useRef<HTMLDivElement>(null);
+    canvas: HTMLCanvasElement
+    sauce?: Sauce
+    fileInfo: FileInfo
+  } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [currentFile, setCurrentFile] = useState<File | null>(null)
+  const [animationController, setAnimationController] = useState<AnimationController | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [animationSpeed, setAnimationSpeed] = useState(57600) // Default to faster speed
+  const canvasRef = useRef<HTMLDivElement>(null)
 
   const processFile = useCallback(async (file: File) => {
-    setIsProcessing(true);
-    setError(null);
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
+      const arrayBuffer = await file.arrayBuffer()
+      const bytes = new Uint8Array(arrayBuffer)
 
       // Determine file type from extension
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'ans';
+      const extension = file.name.split(".").pop()?.toLowerCase() || "ans"
 
       // Save the file for potential animation loading
-      setCurrentFile(file);
+      setCurrentFile(file)
 
       AnsiLove.renderBytes(bytes, (data: HTMLCanvasElement | DisplayData | HTMLCanvasElement[], sauce?: Sauce) => {
-        let canvas: HTMLCanvasElement;
+        let canvas: HTMLCanvasElement
 
         if (Array.isArray(data)) {
           // It's an array of canvases, use the first one
-          canvas = data[0];
-        } else if ('rgbaData' in data) {
+          canvas = data[0]
+        } else if ("rgbaData" in data) {
           // It's DisplayData
-          canvas = AnsiLove.displayDataToCanvas(data as DisplayData);
+          canvas = AnsiLove.displayDataToCanvas(data as DisplayData)
         } else {
           // It's already a canvas
-          canvas = data as HTMLCanvasElement;
+          canvas = data as HTMLCanvasElement
         }
 
-        console.log(file);
+        console.log(file)
         setResult({
           canvas,
           sauce,
           fileInfo: {
             name: file.name,
             size: file.size,
-            type: extension
-          }
-        });
-      }, { filetype: extension });
-
+            type: extension,
+          },
+        })
+      }, { filetype: extension })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process file');
+      setError(err instanceof Error ? err.message : "Failed to process file")
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  }, []);
+  }, [])
 
   const loadAsAnimation = useCallback(async () => {
-    if (!currentFile) return;
+    if (!currentFile) return
 
-    setIsProcessing(true);
-    setError(null);
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const arrayBuffer = await currentFile.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      const extension = currentFile.name.split('.').pop()?.toLowerCase() || 'ans';
+      const arrayBuffer = await currentFile.arrayBuffer()
+      const bytes = new Uint8Array(arrayBuffer)
+      const extension = currentFile.name.split(".").pop()?.toLowerCase() || "ans"
 
       // Use animateBytes for animations
       const controller = AnsiLove.animateBytes(bytes, (canvas: HTMLCanvasElement, sauce?: Sauce) => {
-        console.log('Animation loaded:', currentFile, sauce);
+        console.log("Animation loaded:", currentFile, sauce)
         if (canvasRef.current) {
-          canvasRef.current.innerHTML = '';
-          canvasRef.current.appendChild(canvas);
+          canvasRef.current.innerHTML = ""
+          canvasRef.current.appendChild(canvas)
         }
-        setAnimationController(controller);
+        setAnimationController(controller)
 
         // Auto-play the animation
         setTimeout(() => {
           controller.play(animationSpeed, () => {
-            console.log('Animation finished');
-            setIsPlaying(false);
-          });
-          setIsPlaying(true);
-        }, 100);
-      }, { filetype: extension });
-
+            console.log("Animation finished")
+            setIsPlaying(false)
+          })
+          setIsPlaying(true)
+        }, 100)
+      }, { filetype: extension })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load animation');
+      setError(err instanceof Error ? err.message : "Failed to load animation")
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  }, [currentFile, animationSpeed]);
+  }, [currentFile, animationSpeed])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
+    e.preventDefault()
+    setIsDragOver(false)
 
-    const files = Array.from(e.dataTransfer.files);
-    const file = files[0];
+    const files = Array.from(e.dataTransfer.files)
+    const file = files[0]
 
     if (file) {
-      console.log(file);
-      processFile(file);
+      console.log(file)
+      processFile(file)
     }
-  }, [processFile]);
+  }, [processFile])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      processFile(file);
+      processFile(file)
     }
-  }, [processFile]);
+  }, [processFile])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
+    e.preventDefault()
+    setIsDragOver(true)
+  }, [])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  }, []);
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
 
   // Update canvas display when result changes
   useEffect(() => {
     if (result?.canvas && canvasRef.current) {
-      canvasRef.current.innerHTML = '';
-      canvasRef.current.appendChild(result.canvas);
+      canvasRef.current.innerHTML = ""
+      canvasRef.current.appendChild(result.canvas)
     }
-  }, [result]);
+  }, [result])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
@@ -173,43 +172,45 @@ function App() {
               className={`
                 relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
                 ${isDragOver
-                  ? 'border-green-400 bg-green-400/10'
-                  : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
-                }
-                ${isProcessing ? 'opacity-50 pointer-events-none' : ''}
+            ? "border-green-400 bg-green-400/10"
+            : "border-gray-600 hover:border-gray-500 bg-gray-800/50"
+          }
+                ${isProcessing ? "opacity-50 pointer-events-none" : ""}
               `}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
             >
-              {isProcessing ? (
-                <div className="space-y-4">
-                  <div className="animate-spin w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-white">Processing file...</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="text-6xl text-gray-400">📁</div>
-                  <div>
-                    <p className="text-xl text-white mb-2">
-                      Drop your ANSI file here
-                    </p>
-                    <p className="text-gray-400">
-                      or click to browse
-                    </p>
-                  </div>
+              {isProcessing
+                ? (
+                    <div className="space-y-4">
+                      <div className="animate-spin w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto"></div>
+                      <p className="text-white">Processing file...</p>
+                    </div>
+                  )
+                : (
+                    <div className="space-y-6">
+                      <div className="text-6xl text-gray-400">📁</div>
+                      <div>
+                        <p className="text-xl text-white mb-2">
+                          Drop your ANSI file here
+                        </p>
+                        <p className="text-gray-400">
+                          or click to browse
+                        </p>
+                      </div>
 
-                  <label className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg cursor-pointer transition-colors">
-                    <span>Choose File</span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".ans,.asc,.bin,.ice,.xb,.txt"
-                      onChange={handleFileSelect}
-                    />
-                  </label>
-                </div>
-              )}
+                      <label className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg cursor-pointer transition-colors">
+                        <span>Choose File</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".ans,.asc,.bin,.ice,.xb,.txt"
+                          onChange={handleFileSelect}
+                        />
+                      </label>
+                    </div>
+                  )}
             </div>
 
             {error && (
@@ -229,16 +230,21 @@ function App() {
                 <div>
                   <h3 className="text-lg font-semibold text-white">{result.fileInfo.name}</h3>
                   <p className="text-gray-400">
-                    {(result.fileInfo.size / 1024).toFixed(1)} KB • {result.fileInfo.type.toUpperCase()}
+                    {(result.fileInfo.size / 1024).toFixed(1)}
+                    {" "}
+                    KB •
+                    {result.fileInfo.type.toUpperCase()}
                     {animationController && (
-                      <span className={`ml-2 ${isPlaying ? 'text-green-400' : 'text-yellow-400'}`}>
-                        • Animation {isPlaying ? '(Playing)' : '(Loaded)'}
+                      <span className={`ml-2 ${isPlaying ? "text-green-400" : "text-yellow-400"}`}>
+                        • Animation
+                        {" "}
+                        {isPlaying ? "(Playing)" : "(Loaded)"}
                       </span>
                     )}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  {currentFile?.name.endsWith('.ans') && !animationController && (
+                  {currentFile?.name.endsWith(".ans") && !animationController && (
                     <button
                       onClick={loadAsAnimation}
                       disabled={isProcessing}
@@ -251,7 +257,7 @@ function App() {
                     <>
                       <select
                         value={animationSpeed}
-                        onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+                        onChange={e => setAnimationSpeed(Number(e.target.value))}
                         className="px-3 py-2 bg-gray-700 text-white rounded-lg"
                         disabled={isPlaying}
                       >
@@ -264,22 +270,22 @@ function App() {
                         onClick={() => {
                           if (!isPlaying) {
                             animationController.play(animationSpeed, () => {
-                              console.log('Animation finished');
-                              setIsPlaying(false);
-                            });
-                            setIsPlaying(true);
+                              console.log("Animation finished")
+                              setIsPlaying(false)
+                            })
+                            setIsPlaying(true)
                           }
                         }}
                         disabled={isPlaying || isProcessing}
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
                       >
-                        {isPlaying ? 'Playing...' : 'Replay'}
+                        {isPlaying ? "Playing..." : "Replay"}
                       </button>
                       <button
                         onClick={() => {
                           if (isPlaying) {
-                            animationController.stop();
-                            setIsPlaying(false);
+                            animationController.stop()
+                            setIsPlaying(false)
                           }
                         }}
                         disabled={!isPlaying || isProcessing}
@@ -292,12 +298,12 @@ function App() {
                   <button
                     onClick={() => {
                       if (animationController) {
-                        animationController.stop();
+                        animationController.stop()
                       }
-                      setResult(null);
-                      setCurrentFile(null);
-                      setAnimationController(null);
-                      setIsPlaying(false);
+                      setResult(null)
+                      setCurrentFile(null)
+                      setAnimationController(null)
+                      setIsPlaying(false)
                     }}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                   >
@@ -343,7 +349,7 @@ function App() {
                     <span className="text-gray-400">Comments:</span>
                     <div className="mt-2 space-y-1">
                       {result.sauce.comments.map((comment: string, index: number) => (
-                        <p key={index} className="text-white font-mono text-xs bg-gray-900/50 p-2 rounded">
+                        <p key={index.toLocaleString()} className="text-white font-mono text-xs bg-gray-900/50 p-2 rounded">
                           {comment}
                         </p>
                       ))}
@@ -358,7 +364,7 @@ function App() {
               <div
                 ref={canvasRef}
                 className="inline-block min-w-full h-[100vh]"
-                style={{ imageRendering: 'pixelated' }}
+                style={{ imageRendering: "pixelated" }}
               />
             </div>
           </div>
@@ -369,7 +375,8 @@ function App() {
       <footer className="mt-auto py-8 border-t border-gray-700">
         <div className="container mx-auto px-4 text-center text-gray-400">
           <p className="mb-2">
-            Built with AnsiLove.js • Open source on{' '}
+            Built with AnsiLove.js • Open source on
+            {" "}
             <a
               href="https://github.com/ansilove"
               className="text-green-400 hover:text-green-300 transition-colors"
@@ -385,7 +392,7 @@ function App() {
         </div>
       </footer>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

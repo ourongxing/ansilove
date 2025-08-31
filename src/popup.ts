@@ -1,11 +1,11 @@
 // Popup module for AnsiLove
 
-import type { RenderOptions } from './types';
-import { ParserModule } from './parser';
-import { animateBytes } from './animation';
+import type { RenderOptions } from "./types"
+import { animateBytes } from "./animation"
+import { ParserModule } from "./parser"
 
 interface StyleObject {
-  [key: string]: string;
+  [key: string]: string
 }
 
 const STYLE_DEFAULTS: StyleObject = {
@@ -27,36 +27,36 @@ const STYLE_DEFAULTS: StyleObject = {
   "float": "none",
   "overflow": "auto",
   "position": "relative",
-  "visibility": "visible"
-};
+  "visibility": "visible",
+}
 
 function findHighestZIndex(): number {
-  const elements = document.getElementsByTagName("*");
-  let highest = 0;
+  const elements = document.getElementsByTagName("*")
+  let highest = 0
 
   for (let i = 0; i < elements.length; ++i) {
-    const zIndex = document.defaultView!.getComputedStyle(elements[i]).zIndex;
+    const zIndex = document.defaultView!.getComputedStyle(elements[i]).zIndex
     if (zIndex !== "auto" && zIndex !== "inherit") {
-      highest = Math.max(highest, parseInt(zIndex, 10));
+      highest = Math.max(highest, Number.parseInt(zIndex, 10))
     }
   }
-  return highest;
+  return highest
 }
 
 function applyStyle(element: HTMLElement, style: StyleObject): void {
   for (const name in style) {
-    if (style.hasOwnProperty(name)) {
-      element.style.setProperty(name, style[name], "important");
+    if (Object.prototype.hasOwnProperty.call(style, name)) {
+      element.style.setProperty(name, style[name], "important")
     }
   }
 }
 
 function createDiv(style?: StyleObject): HTMLDivElement {
-  style = style || {};
-  const div = document.createElement("div");
-  applyStyle(div, STYLE_DEFAULTS);
-  applyStyle(div, style);
-  return div;
+  style = style || {}
+  const div = document.createElement("div")
+  applyStyle(div, STYLE_DEFAULTS)
+  applyStyle(div, style)
+  return div
 }
 
 function transitionCSS(
@@ -64,43 +64,41 @@ function transitionCSS(
   transProperty: string,
   transDuration: string,
   transFunction: string,
-  style?: StyleObject
+  style?: StyleObject,
 ): void {
-  element.style.transitionProperty = transProperty;
-  element.style.transitionDuration = transDuration;
-  element.style.transitionTimingFunction = transFunction;
+  element.style.transitionProperty = transProperty
+  element.style.transitionDuration = transDuration
+  element.style.transitionTimingFunction = transFunction
   if (style) {
-    setTimeout(function (): void {
-      applyStyle(element, style);
-    }, 50);
+    setTimeout((): void => {
+      applyStyle(element, style)
+    }, 50)
   }
 }
 
 export function show(bytes: Uint8Array, baud: number, options: RenderOptions): void {
-  let divOverlay: HTMLDivElement;
-  let divCanvasContainer: HTMLDivElement;
+  let divOverlay: HTMLDivElement
+  let divCanvasContainer: HTMLDivElement
 
   function slideUpContainer(): void {
     if (options.spinner) {
-      applyStyle(divOverlay, {"background-image": "none"});
+      applyStyle(divOverlay, { "background-image": "none" })
     }
-    transitionCSS(divCanvasContainer, "top", "0.6s", "ease-in-out", {"top": "0"});
-    setTimeout(function (): void {
-      applyStyle(divOverlay, {"overflow": "auto"});
-    }, 750);
+    transitionCSS(divCanvasContainer, "top", "0.6s", "ease-in-out", { top: "0" })
+    setTimeout((): void => {
+      applyStyle(divOverlay, { overflow: "auto" })
+    }, 750)
   }
 
   function processCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
-    applyStyle(canvas, STYLE_DEFAULTS);
-    canvas.style.verticalAlign = "bottom";
-    return canvas;
+    applyStyle(canvas, STYLE_DEFAULTS)
+    canvas.style.verticalAlign = "bottom"
+    return canvas
   }
 
-
-
   function dismiss(evt: Event): void {
-    evt.preventDefault();
-    document.body.removeChild(divOverlay);
+    evt.preventDefault()
+    document.body.removeChild(divOverlay)
   }
 
   divOverlay = createDiv({
@@ -112,17 +110,17 @@ export function show(bytes: Uint8Array, baud: number, options: RenderOptions): v
     "background-color": "rgba(0, 0, 0, 0.8)",
     "overflow": "hidden",
     "z-index": (findHighestZIndex() + 1).toString(10),
-    "opacity": "0"
-  });
+    "opacity": "0",
+  })
 
   if (options.spinner) {
     applyStyle(divOverlay, {
-      "background-image": "url(" + options.spinner + ")",
+      "background-image": `url(${options.spinner})`,
       "background-position": "center center",
-      "background-repeat": "no-repeat"
-    });
+      "background-repeat": "no-repeat",
+    })
     if (options["2x"]) {
-      applyStyle(divOverlay, {"background-size": "32px 64px"});
+      applyStyle(divOverlay, { "background-size": "32px 64px" })
     }
   }
 
@@ -133,51 +131,51 @@ export function show(bytes: Uint8Array, baud: number, options: RenderOptions): v
     "padding": "16px",
     "border": "2px solid white",
     "border-radius": "8px",
-    "top": "100%"
-  });
+    "top": "100%",
+  })
 
-  divOverlay.appendChild(divCanvasContainer);
-  document.body.appendChild(divOverlay);
+  divOverlay.appendChild(divCanvasContainer)
+  document.body.appendChild(divOverlay)
 
-  transitionCSS(divOverlay, "opacity", "0.2s", "ease-out", {"opacity": "1.0"});
+  transitionCSS(divOverlay, "opacity", "0.2s", "ease-out", { opacity: "1.0" })
 
-  setTimeout(function (): void {
+  setTimeout((): void => {
     if (baud > 0) {
-      const controller = animateBytes(bytes, function (canvas): void {
+      const controller = animateBytes(bytes, (canvas): void => {
         if (options["2x"]) {
-          divCanvasContainer.style.width = (canvas.width / 2) + "px";
+          divCanvasContainer.style.width = `${canvas.width / 2}px`
         } else {
-          divCanvasContainer.style.width = canvas.width + "px";
+          divCanvasContainer.style.width = `${canvas.width}px`
         }
-        divCanvasContainer.appendChild(processCanvas(canvas));
-        slideUpContainer();
-        setTimeout(function (): void {
-          controller.play(baud);
-        }, 750);
+        divCanvasContainer.appendChild(processCanvas(canvas))
+        slideUpContainer()
+        setTimeout((): void => {
+          controller.play(baud)
+        }, 750)
         divOverlay.onclick = function (evt): void {
-          dismiss(evt);
-          controller.stop();
-        };
-      }, options);
+          dismiss(evt)
+          controller.stop()
+        }
+      }, options)
     } else {
-      ParserModule.readBytes(bytes, function (canvases: any): void {
+      ParserModule.readBytes(bytes, (canvases: any): void => {
         if (Array.isArray(canvases)) {
           if (options["2x"]) {
-            divCanvasContainer.style.width = (canvases[0].width / 2) + "px";
+            divCanvasContainer.style.width = `${canvases[0].width / 2}px`
           } else {
-            divCanvasContainer.style.width = canvases[0].width + "px";
+            divCanvasContainer.style.width = `${canvases[0].width}px`
           }
-          canvases.forEach(function (canvas: HTMLCanvasElement): void {
-            divCanvasContainer.appendChild(processCanvas(canvas));
-          });
+          canvases.forEach((canvas: HTMLCanvasElement): void => {
+            divCanvasContainer.appendChild(processCanvas(canvas))
+          })
         }
-        slideUpContainer();
-        divOverlay.onclick = dismiss;
-      }, 100, options);
+        slideUpContainer()
+        divOverlay.onclick = dismiss
+      }, 100, options)
     }
-  }, 250);
+  }, 250)
 }
 
 export const PopupModule = {
-  show
-};
+  show,
+}
