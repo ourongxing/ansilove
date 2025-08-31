@@ -33,6 +33,7 @@
     "lint": "eslint .",
     "dev:example": "pnpm --filter example dev",
     "release": "bumpp",
+    "prepublishOnly": "pnpm run build",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
