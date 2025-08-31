@@ -28,21 +28,33 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown src/index.ts",
+    "build": "pnpm run typecheck && tsdown src/index.ts",
     "dev": "pnpm run build --watch",
+    "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "dev:example": "pnpm --filter example dev"
+    "dev:example": "pnpm --filter example dev",
+    "release": "bumpp",
+    "prepare": "simple-git-hooks"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.2.1",
     "@eslint-react/eslint-plugin": "^1.52.9",
     "@eslint/js": "^9.33.0",
     "@types/node": "^22.10.1",
+    "bumpp": "^10.2.3",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "lint-staged": "^16.1.5",
+    "simple-git-hooks": "^2.13.1",
     "tsdown": "^0.14.2",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
   }
 }
